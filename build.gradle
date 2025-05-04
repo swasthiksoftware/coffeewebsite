@@ -1,0 +1,69 @@
+plugins {
+    id 'base' // Provides clean task and basic lifecycle tasks
+}
+
+// Custom task to install dependencies (tools needed for processing)
+task installTools(type: Exec) {
+    description 'Install required tools'
+    commandLine 'npm', 'install', '-g', 'html-minifier', 'clean-css-cli'
+    // Only run if tools aren't already installed
+    onlyIf { 
+        try {
+            exec { commandLine 'html-minifier', '--version' }
+            exec { commandLine 'cleancss', '--version' }
+            false
+        } catch (Exception e) {
+            true
+        }
+    }
+}
+
+// Task to process HTML files
+task processHtml(type: Exec) {
+    description 'Minify HTML files'
+    dependsOn installTools
+    commandLine 'html-minifier', 
+                '--input-dir', 'src', 
+                '--output-dir', 'build/dist', 
+                '--collapse-whitespace',
+                '--remove-comments'
+}
+
+// Task to process CSS files
+task processCss(type: Exec) {
+    description 'Minify CSS files'
+    dependsOn installTools
+    commandLine 'cleancss', 
+                '-o', 'build/dist/styles.min.css', 
+                'src/styles.css'
+}
+
+// Main build task
+task buildWebAssets {
+    description 'Build the web assets'
+    dependsOn processHtml, processCss
+    doLast {
+        println "Build completed in ${project.buildDir}/dist"
+    }
+}
+
+// Task to package the built files (optional)
+task packageAssets(type: Zip) {
+    from 'build/dist'
+    archiveFileName = 'webapp-assets.zip'
+    destinationDirectory = file('build/dist')
+}
+
+// Clean task extension
+clean {
+    delete 'build'
+}
+
+// Define what "install" means in this context
+task install {
+    description 'Set up the build environment'
+    dependsOn installTools
+}
+
+// Default task
+build.dependsOn buildWebAssets
