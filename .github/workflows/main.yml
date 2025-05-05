@@ -1,0 +1,17 @@
+name: CI Pipeline
+
+on: [push]  # Runs when code is pushed
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # Uses GitHub's Linux machine
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4  # Checks out your repo
+
+      - name: Install dependencies
+        run: npm install  # Replace with `pip install` (Python) or `mvn install` (Java)
+
+      - name: Run tests
+        run: npm test  # Replace with `pytest` (Python) or `mvn test` (Java)
