@@ -1,0 +1,48 @@
+pipeline {
+    agent any
+    
+    tools {
+        nodejs 'nodejs-lts' // Needed for npm packages
+    }
+    
+    stages {
+        stage('Install') {
+            steps {
+                script {
+                    // Run the install task
+                    sh './gradlew install'
+                }
+            }
+        }
+        
+        stage('Build') {
+            steps {
+                script {
+                    // Run the build task
+                    sh './gradlew build'
+                    
+                    // Archive the built files
+                    archiveArtifacts artifacts: 'build/dist/**/*', fingerprint: true
+                }
+            }
+        }
+        
+        stage('Package') {
+            steps {
+                script {
+                    // Create a distributable package
+                    sh './gradlew packageAssets'
+                    
+                    // Archive the zip file
+                    archiveArtifacts artifacts: 'build/dist/*.zip', fingerprint: true
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            cleanWs() // Clean workspace after build
+        }
+    }
+}
